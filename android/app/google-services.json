@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "316670281493",
+    "project_id": "studio-booking-326617",
+    "storage_bucket": "studio-booking-326617.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316670281493:android:ba914995dde498a355cb1c",
+        "android_client_info": {
+          "package_name": "com.example.studio_booking_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "316670281493-b8honl4tb2fg01qi3t7k9b23v4ogtihj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoOrX7BSX31KWsS0M7metCQbbfR_TUMLc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "316670281493-b8honl4tb2fg01qi3t7k9b23v4ogtihj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
