@@ -1,17 +1,38 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:studio_booking_app/Artist%20Screens/reserve_studio.dart';
+import 'package:studio_booking_app/Model/studio_model.dart';
+import 'package:studio_booking_app/Shared%20Preference/shared_prefrence.dart';
 import 'package:studio_booking_app/Values/constants.dart';
 
 
 class StudioDetail extends StatefulWidget {
-  const StudioDetail({Key? key}) : super(key: key);
+  StudioModel model;
+
+  StudioDetail(this.model);
 
   @override
   _StudioDetailState createState() => _StudioDetailState();
 }
 
 class _StudioDetailState extends State<StudioDetail> {
+
+  int? choice;
+
+  @override
+  void initState() {
+    SharedPref sharedPref=new SharedPref();
+    sharedPref.getChoiceOfClient().then((value)
+    {
+      setState(() {
+        choice =  value;
+      });
+    });
+    super.initState();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -21,10 +42,10 @@ class _StudioDetailState extends State<StudioDetail> {
           children: [
             Container(
               height: size.height*0.31,
-              decoration: const BoxDecoration(
+              decoration:  BoxDecoration(
                   color: Colors.grey,
                   image: DecorationImage(
-                  image : AssetImage("assets/images/empty.png"),
+                  image : NetworkImage(widget.model.title_image),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -42,9 +63,9 @@ class _StudioDetailState extends State<StudioDetail> {
                       },
                       child: Row(
                         children: [
-                          Icon(Icons.arrow_back_ios,color: Colors.black,),
+                          Icon(Icons.arrow_back_ios,color: Colors.white,),
                           Text("Back",style: TextStyle(
-                            color : Colors.black,
+                            color : Colors.white,
                           ),),
                         ],
                       ),
@@ -54,27 +75,45 @@ class _StudioDetailState extends State<StudioDetail> {
                   SizedBox(
                     height: size.height*0.07,
                   ),
+
+                  //title
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(8,3,8,2),
-                    child: Text("Life Beauty Parlour",style: TextStyle(
-                      fontSize : 24,
-                      fontWeight: FontWeight.w400
+                    padding:  EdgeInsets.fromLTRB(8,3,8,2),
+                    child: Text(widget.model.title,style: TextStyle(
+                      fontSize : 21,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white
                     ),),
                   ),
+                  //location
                   Padding(
                     padding: const EdgeInsets.fromLTRB(8,0,8,3),
-                    child: Text("Paris,France"),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(widget.model.studio_type,style: TextStyle(
+                          color: Colors.white
+                        ),),
+                        Text(widget.model.price + '€ Per/h',style: TextStyle(
+                            color: Colors.white,
+                          fontWeight: FontWeight.w700
+                        ),),
+                      ],
+                    ),
+
                   ),
 
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8,3,8,0),
+                  choice == 1 ? Padding(
+                    padding: const EdgeInsets.fromLTRB(8,3,0,0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         RatingBar.builder(
+                          unratedColor: Colors.white60,
+                          ignoreGestures: true,
                           itemSize: 20,
-                          initialRating: 3.5,
-                          minRating: 1,
+                          initialRating: widget.model.rating.toDouble(),
+                          minRating: 0,
                           direction: Axis.horizontal,
                           allowHalfRating: true,
                           itemCount: 5,
@@ -88,31 +127,58 @@ class _StudioDetailState extends State<StudioDetail> {
                           },
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(0,0,12,0),
-                          child: Container(
-                            width: size.width*0.18,
-                            height : size.height*0.035,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(18),
-                              color: primaryColor,
-                                gradient: const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Color(0xFF0681D5),
-                                Color(0xFF000080),
-                                /*      Color(0xff000080),
+                          padding: const EdgeInsets.fromLTRB(0,0,8,0),
+                          child: InkWell(
+                            onTap: (){
+                              Navigator.push(context,MaterialPageRoute(builder: (context) =>  ReserveStudio()),);
+                            },
+                            child: Container(
+                              width: size.width*0.18,
+                              height : size.height*0.035,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(18),
+                                color: primaryColor,
+                                  gradient: const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color(0xFF0681D5),
+                                  Color(0xFF000080),
+                                  /*      Color(0xff000080),
                 Color(0xff104FE4),*/
-                              ],
-                            )
+                                ],
+                              )
+                              ),
+                              child:const Center(child:Text("Reserve",style: TextStyle(
+                                color : Colors.white,
+                              ),)),
                             ),
-                            child:const Center(child:Text("Reserve",style: TextStyle(
-                              color : Colors.white,
-                            ),)),
                           ),
                         )
                       ],
                     ),
+                  ) :
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8,0,8,3),
+                    child:  RatingBar.builder(
+                      unratedColor: Colors.white60,
+                      ignoreGestures: true,
+                      itemSize: 20,
+                      initialRating: widget.model.rating.toDouble(),
+                      minRating: 0,
+                      direction: Axis.horizontal,
+                      allowHalfRating: true,
+                      itemCount: 5,
+                      itemPadding: const EdgeInsets.symmetric(horizontal: 0.0),
+                      itemBuilder: (context, _) => const Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                      ),
+                      onRatingUpdate: (rating) {
+                        print(rating);
+                      },
+                    ),
+
                   ),
 
                 ],
@@ -202,35 +268,13 @@ class _StudioDetailState extends State<StudioDetail> {
                                         ),
                                       Padding(
                                         padding: const EdgeInsets.fromLTRB(14,0,14,5),
-                                        child: Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore and dolore magna aliqua.",style: TextStyle(
+                                        child: Text(widget.model.bio,style: TextStyle(
                                           // /fontWeight: FontWeight.w500,
                                           fontSize: 14,
                                           color: Colors.grey.shade600
                                         ),),
                                       ),
-                                      const Padding(
-                                        padding: EdgeInsets.fromLTRB(14,10,14,5),
-                                        child: Text("Services",style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 20,
-                                        ),),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(14,0,14,5),
-                                        child: Text("Duis aute irure dolor in reprehenderit",style: TextStyle(
-                                          // /fontWeight: FontWeight.w500,
-                                            fontSize: 14,
-                                            color: Colors.grey.shade600
-                                        ),),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(14,0,14,5),
-                                        child: Text("Duis aute irure dolor in reprehenderit",style: TextStyle(
-                                          // /fontWeight: FontWeight.w500,
-                                            fontSize: 14,
-                                            color: Colors.grey.shade600
-                                        ),),
-                                      ),
+
                                       const Padding(
                                         padding: EdgeInsets.fromLTRB(14,10,14,5),
                                         child: Text("Studio features",style: TextStyle(
@@ -241,29 +285,13 @@ class _StudioDetailState extends State<StudioDetail> {
 
                                       Padding(
                                         padding: const EdgeInsets.fromLTRB(14,0,14,5),
-                                        child: Text("Duis aute irure dolor ",style: TextStyle(
+                                        child: Text(widget.model.features,style: TextStyle(
                                           // /fontWeight: FontWeight.w500,
                                             fontSize: 14,
-                                            color: Colors.grey.shade600
-                                        ),),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(14,0,14,5),
-                                        child: Text("Duis aute irure dolor  in reprehenderit ",style: TextStyle(
-                                          // /fontWeight: FontWeight.w500,
-                                            fontSize: 14,
-                                            color: Colors.grey.shade600
+                                            color: Colors.grey.shade600,
                                         ),),
                                       ),
 
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(14,0,14,5),
-                                        child: Text("Duis aute irure dolor  in reprehenderit ",style: TextStyle(
-                                          // /fontWeight: FontWeight.w500,
-                                            fontSize: 14,
-                                            color: Colors.grey.shade600
-                                        ),),
-                                      ),
 
                                       const Padding(
                                         padding: EdgeInsets.fromLTRB(14,10,14,5),
@@ -275,29 +303,30 @@ class _StudioDetailState extends State<StudioDetail> {
 
                                       Padding(
                                         padding: const EdgeInsets.fromLTRB(14,0,14,5),
-                                        child: Text("Duis aute irure dolor ",style: TextStyle(
-                                          // /fontWeight: FontWeight.w500,
-                                            fontSize: 14,
-                                            color: Colors.grey.shade600
-                                        ),),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(14,0,14,5),
-                                        child: Text("Duis aute irure dolor  in reprehenderit ",style: TextStyle(
+                                        child: Text(widget.model.equipments,style: TextStyle(
                                           // /fontWeight: FontWeight.w500,
                                             fontSize: 14,
                                             color: Colors.grey.shade600
                                         ),),
                                       ),
 
+                                      const Padding(
+                                        padding: EdgeInsets.fromLTRB(14,10,14,5),
+                                        child: Text("Music Type",style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 20,
+                                        ),),
+                                      ),
+
                                       Padding(
                                         padding: const EdgeInsets.fromLTRB(14,0,14,5),
-                                        child: Text("Duis aute irure dolor  in reprehenderit ",style: TextStyle(
+                                        child: Text(widget.model.music_type.toString(),style: TextStyle(
                                           // /fontWeight: FontWeight.w500,
                                             fontSize: 14,
                                             color: Colors.grey.shade600
                                         ),),
                                       ),
+
 
                                       SizedBox(
                                         height: size.height*0.01,

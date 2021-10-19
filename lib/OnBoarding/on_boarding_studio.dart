@@ -4,18 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:sk_onboarding_screen/sk_onboarding_model.dart';
 import 'package:sk_onboarding_screen/sk_onboarding_screen.dart';
 import 'package:studio_booking_app/Auth/sign_in.dart';
+import 'package:studio_booking_app/Shared%20Preference/shared_prefrence.dart';
 import 'package:studio_booking_app/Values/constants.dart';
 
-class OnBoarding extends StatefulWidget {
-  const OnBoarding({Key? key}) : super(key: key);
+class OnBoardingStudio extends StatefulWidget {
+  const OnBoardingStudio({Key? key}) : super(key: key);
 
   @override
-  _OnBoardingState createState() => _OnBoardingState();
+  _OnBoardingStudioState createState() => _OnBoardingStudioState();
 }
 
-class _OnBoardingState extends State<OnBoarding> {
+class _OnBoardingStudioState extends State<OnBoardingStudio> {
+
+  @override
+  void initState() {
+
+    SharedPref sharedPref=new SharedPref();
+    sharedPref.setFirstStudio();
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+/*
     Future<bool> showExitPopup() async {
       return await showDialog( //show confirm dialogue
         //the return value will be from "Yes" or "No" options
@@ -48,11 +60,10 @@ class _OnBoardingState extends State<OnBoarding> {
         ),
       )??false; //if showDialouge had returned null, then return false
     }
+*/
 
-    return WillPopScope(
-      onWillPop: showExitPopup,
-      child: Scaffold(
-       body : SKOnboardingScreen(
+    return  Scaffold(
+        body : SKOnboardingScreen(
           bgColor: Colors.white,
           themeColor: primaryColor,
           pages: pages,
@@ -65,31 +76,30 @@ class _OnBoardingState extends State<OnBoarding> {
             print("Get Started");
           },
         ),
-      ),
     );
   }
 
   final pages = [
     SkOnboardingModel(
-        title: 'Find your studio',
+        title: 'Increase its visibility',
         description:
-        'Compare the studios among several criteria of your choice (price, location, service, etc.). Select the one that matches your musical world.',
+        'List your studio for free. Take advantage of the flow of visitors, and this new means of communication to strengthen your image.',
         titleColor: Colors.black,
         descripColor: const Color(0xFF929794),
-        imagePath: 'assets/images/pin.png'),
+        imagePath: 'assets/images/visibility.png'),
     SkOnboardingModel(
-        title: 'Reserve in a few clicks',
+        title: 'Win time',
         description:
-        'Reserve the times of your choice. Pay online or directly on site.',
+        'The platform is made for you, to facilitate the management of daily sessions. This will give you more time for other activities related to your studio.',
         titleColor: Colors.black,
         descripColor: const Color(0xFF929794),
-        imagePath: 'assets/images/calender.png'),
+        imagePath: 'assets/images/managment.png'),
     SkOnboardingModel(
-        title: 'Record your sound',
-        description: 'This is it, the start of an adventure.Go to the chosen studio, take full advantage of your session and let your passion express itself.',
+        title: 'Increase your income',
+        description: 'With the increase in your attendance, and the acquisition of new customers, your turnover will be amplified.',
         titleColor: Colors.black,
         descripColor: const Color(0xFF929794),
-        imagePath: 'assets/images/rocket.png'),
+        imagePath: 'assets/images/income.png'),
   ];
 
 

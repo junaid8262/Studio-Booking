@@ -7,6 +7,12 @@ const disabledFontColor = Color(0xFF9F9F9F);
 const primaryColor = Color(0xFF000080);
 const backgroundColor = Color(0xFFf8f8f8);
 
+const alreadyUsed="alreadyUsed";
+const alreadyUsed2="alreadyUsed2";
+
+const client="client";
+
+
 
 
 

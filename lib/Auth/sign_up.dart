@@ -3,9 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:studio_booking_app/Auth/sign_in.dart';
-import 'package:studio_booking_app/Navigator/bottom_navigator.dart';
-import 'package:studio_booking_app/Screens/home.dart';
-import 'package:studio_booking_app/Screens/privacy_policy.dart';
+import 'package:studio_booking_app/Choice%20of%20Client/choice_of_client.dart';
+import 'package:studio_booking_app/Navigator/bottom_navigator_artist.dart';
+import 'package:studio_booking_app/Artist%20Screens/home_artist.dart';
+import 'package:studio_booking_app/Artist%20Screens/privacy_policy.dart';
+import 'package:studio_booking_app/Shared%20Preference/shared_prefrence.dart';
 import 'package:studio_booking_app/Values/constants.dart';
 import 'package:toast/toast.dart';
 
@@ -29,6 +31,8 @@ class _SignUpState extends State<SignUp> {
   bool _obscureText = true ,  _obscureText2 = true  ;
   bool isCheck = false ;
 
+  int? choice;
+
   void _toggle2() {
     setState(() {
       _obscureText2 = !_obscureText2;
@@ -39,6 +43,18 @@ class _SignUpState extends State<SignUp> {
     setState(() {
       _obscureText = !_obscureText;
     });
+  }
+
+  @override
+  void initState() {
+    SharedPref sharedPref=new SharedPref();
+    sharedPref.getChoiceOfClient().then((value)
+    {
+      setState(() {
+        choice =  value;
+      });
+    });
+    super.initState();
   }
 
   @override
@@ -82,9 +98,34 @@ class _SignUpState extends State<SignUp> {
       child: Scaffold(
 
         backgroundColor: primaryColor,
-        body: Column(
+        body: ListView(
+          physics: BouncingScrollPhysics(),
+          padding: EdgeInsets.all(0),
           children: [
-            SizedBox(height: size.height*0.15,),
+            Container(
+                height: size.height*0.15,
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: InkWell(
+                      onTap  : (){
+                        Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => const ChoiceOfClient()),);
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Icons.arrow_back_ios,color : Colors.white),
+                          Text("Back",style: TextStyle(
+                              color : Colors.white,
+                              fontSize: 16
+                          ),)
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+            ),
             Form(
                 key: _formKey,
                 child: Container(
@@ -98,9 +139,10 @@ class _SignUpState extends State<SignUp> {
                       children: [
                         SizedBox(height : size.height*0.07),
 
-                        const Center(child: Text("Register Now",style: TextStyle(
+                         Center(child: choice == 1 ?  Text("Register as Artist",style: TextStyle(
                           fontSize: 24,
-                        ),),),
+                        ),) : Text("Register as Studio",style: TextStyle(fontSize: 24,
+                         ),) ),
 
                         SizedBox(height : size.height*0.07),
 
@@ -405,6 +447,7 @@ class _SignUpState extends State<SignUp> {
       if (e.code == 'weak-password') {
         Toast.show("Weak Password", context, duration: Toast.LENGTH_LONG, gravity:  Toast.TOP , textColor: primaryColor , backgroundColor: Colors.white);
       } else if (e.code == 'email-already-in-use') {
+
         Toast.show("Email Already Exist", context, duration: Toast.LENGTH_LONG, gravity:  Toast.TOP , textColor: primaryColor , backgroundColor: Colors.white);
       }
       else if (e.code == 'network-request-failed') {

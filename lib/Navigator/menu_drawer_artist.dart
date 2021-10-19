@@ -1,14 +1,35 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:studio_booking_app/Auth/sign_in.dart';
+import 'package:studio_booking_app/Artist%20Screens/music_preference.dart';
+import 'package:studio_booking_app/Model/user_model.dart';
 import 'package:studio_booking_app/Values/constants.dart';
 
-class MenuDrawer extends StatefulWidget {
-  const MenuDrawer({Key? key}) : super(key: key);
+class MenuDrawerArtist extends StatefulWidget {
+  UserModel model;
+
+  MenuDrawerArtist(this.model);
 
   @override
-  _MenuDrawerState createState() => _MenuDrawerState();
+  _MenuDrawerArtistState createState() => _MenuDrawerArtistState();
 }
 
-class _MenuDrawerState extends State<MenuDrawer> {
+class _MenuDrawerArtistState extends State<MenuDrawerArtist> {
+
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
+  final FirebaseAuth auth = FirebaseAuth.instance;
+
+  String getUid() {
+    final User? user = auth.currentUser;
+    final uid = user!.uid;
+    return uid;
+  }
+
+
+
+
 
   void onDrawerItemClicked(String name) {
     Navigator.pop(context);
@@ -26,21 +47,24 @@ class _MenuDrawerState extends State<MenuDrawer> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: size.height*0.09,),
-              const Center(
+
+              Column(
+            children: [
+              Center(
                 child:  CircleAvatar(
                   radius : 48,
                   backgroundColor: Colors.grey,
                   child: CircleAvatar(
                     radius: 47,
-                    backgroundImage: AssetImage("assets/images/empty.png",),
+                    backgroundImage: NetworkImage(widget.model.profile),
                   ),
                 ),
               ),
               SizedBox(
                 height: size.height*0.02,
               ),
-              const Center(
-                child: Text("Rosina Kaur ",style: TextStyle(
+              Center(
+                child: Text(widget.model.fullName,style: const TextStyle(
                   fontSize: 18,
                   color: Colors.white,
                 ),),
@@ -48,8 +72,8 @@ class _MenuDrawerState extends State<MenuDrawer> {
               SizedBox(
                 height: size.height*0.01,
               ),
-              const Center(
-                child: Text("+088 - 123456789",style: TextStyle(
+              Center(
+                child: Text(widget.model.phoneNo,style: const TextStyle(
                   fontSize: 17,
                   color: Colors.white,
                 ),),
@@ -64,6 +88,10 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 indent: 15,
                 color: Colors.white,
               ),
+
+            ],
+          ),
+
               SizedBox(
                 height: size.height*0.01,
               ),
@@ -105,16 +133,21 @@ class _MenuDrawerState extends State<MenuDrawer> {
               ),
               Padding(
                 padding:  const EdgeInsets.fromLTRB(20,10 ,0 ,0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.settings ,color: Colors.white,),
-                    SizedBox(width: size.width*0.05,),
-                    const Text("Help & Support",style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                    ),),
-                  ],
+                child: InkWell(
+                  onTap: (){
+                    Navigator.push(context,MaterialPageRoute(builder: (context) =>  MusicPreference()));
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.settings ,color: Colors.white,),
+                      SizedBox(width: size.width*0.05,),
+                      const Text("Help & Support",style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                      ),),
+                    ],
+                  ),
                 ),
               ),
 
@@ -123,16 +156,21 @@ class _MenuDrawerState extends State<MenuDrawer> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20,10 ,0 ,0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.logout ,color: Colors.white,),
-                    SizedBox(width: size.width*0.05,),
-                    const Text("Sign Out",style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                    ),),
-                  ],
+                child: InkWell(
+                  onTap: (){
+                    _signOut().then((value) => Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) =>  SignIn())));
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.logout ,color: Colors.white,),
+                      SizedBox(width: size.width*0.05,),
+                      const Text("Sign Out",style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                      ),),
+                    ],
+                  ),
                 ),
               ),
 
@@ -141,6 +179,15 @@ class _MenuDrawerState extends State<MenuDrawer> {
         ),
       ),
     );
+  }
+
+  Future<void> _signOut() async {
+
+    await FirebaseAuth.instance.signOut();
+    await GoogleSignIn().signOut();
+    //await  FacebookLogin().logOut();
+
+    // await FirebaseAuth.instance.signOut();
   }
 
 

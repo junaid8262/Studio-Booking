@@ -1,14 +1,16 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart'  as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:progress_dialog/progress_dialog.dart';
-import 'package:studio_booking_app/Navigator/bottom_navigator.dart';
+import 'package:studio_booking_app/Model/user_model.dart';
+import 'package:studio_booking_app/Navigator/bottom_navigator_artist.dart';
+import 'package:studio_booking_app/Navigator/bottom_navigator_studio.dart';
+import 'package:studio_booking_app/Shared%20Preference/shared_prefrence.dart';
 import 'package:studio_booking_app/Values/constants.dart';
 import 'package:toast/toast.dart';
 
@@ -34,8 +36,18 @@ class _ProfileSetupState extends State<ProfileSetup> {
     uid = user!.uid;
   }
 
+  int? choice;
+
+
   @override
   void initState() {
+    SharedPref sharedPref= SharedPref();
+    sharedPref.getChoiceOfClient().then((value)
+    {
+      setState(() {
+        choice =  value;
+      });
+    });
     inputData();
     super.initState();
   }
@@ -80,7 +92,9 @@ class _ProfileSetupState extends State<ProfileSetup> {
       onWillPop: showExitPopup,
       child: Scaffold(
         backgroundColor: primaryColor,
-        body: Column(
+        body: ListView(
+          padding: EdgeInsets.all(0),
+          physics: BouncingScrollPhysics(),
           children: [
             SizedBox(height: size.height*0.15,),
             Container(
@@ -168,7 +182,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                               ),
                               validator: (value) {
                                 if (value!.isEmpty) {
-                                  return "Enter Email";
+                                  return "Enter Full Name";
                                 }
                                 return null;
                               },
@@ -216,7 +230,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                               ),
                               validator: (value) {
                                 if (value!.isEmpty) {
-                                  return "Enter Email";
+                                  return "Enter Artist Name";
                                 }
                                 return null;
                               },
@@ -264,7 +278,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                               ),
                               validator: (value) {
                                 if (value!.isEmpty) {
-                                  return "Enter Email";
+                                  return "Enter Phone No";
                                 }
                                 return null;
                               },
@@ -283,19 +297,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                           {
                             if(photoUrl.length > 0 )
                               {
-                                setUserData().then((value) => Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) =>  BottomBar())).then((value) {
-                                  AwesomeDialog(
-                                    context: context,
-                                    headerAnimationLoop: false,
-                                    dialogType: DialogType.NO_HEADER,
-                                    title: 'Welcome',
-                                    btnOkOnPress: () {
-                                      debugPrint('OnClcik');
-                                    },
-                                    autoHide: Duration(seconds: 3),
-                                    btnOkIcon: Icons.check_circle,
-                                  ).show();
-                                }));
+                                setUserData();
                               }
                             else
                               {
@@ -434,10 +436,31 @@ class _ProfileSetupState extends State<ProfileSetup> {
       'profile': photoUrl,
       "fullName": fullName.text.trim(),
       "phoneNo": phoneNo.text.trim(),
+      "type" : choice == 1 ? "artist" : "studio",
     }).onError((error, stackTrace) {
       pr.hide();
       Toast.show(error.toString(), context, duration: Toast.LENGTH_LONG, gravity:  Toast.TOP , textColor: primaryColor , backgroundColor: Colors.white);
-    }).then((value) => pr.hide());
+    }).then((value) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .then((DocumentSnapshot documentSnapshot) async {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        UserModel model= UserModel.fromMap(data, documentSnapshot.reference.id);
+        pr.hide();
+        if(choice == 1 )
+        {
+          Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) =>  BottomBarArtist(model)));
+        }
+        else
+        {
+          Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) =>  BottomBarStudio(model)));
+        }
+
+      });
+    });
+
   }
 
 

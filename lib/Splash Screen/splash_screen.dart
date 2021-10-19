@@ -1,9 +1,18 @@
 
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:studio_booking_app/OnBoarding/on_boarding.dart';
+import 'package:studio_booking_app/Auth/sign_in.dart';
+import 'package:studio_booking_app/Choice%20of%20Client/choice_of_client.dart';
+import 'package:studio_booking_app/Model/user_model.dart';
+import 'package:studio_booking_app/Navigator/bottom_navigator_artist.dart';
+import 'package:studio_booking_app/Navigator/bottom_navigator_studio.dart';
+import 'package:studio_booking_app/OnBoarding/on_boarding_artist.dart';
+import 'package:studio_booking_app/OnBoarding/on_boarding_studio.dart';
+import 'package:studio_booking_app/Shared%20Preference/shared_prefrence.dart';
 
 class SplashScreen extends StatefulWidget {
 /*  static String routeName = "/splash";
@@ -31,9 +40,89 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void navigationPage() {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => OnBoarding()));
 
+    SharedPref sharedPref=new SharedPref();
+    sharedPref.getChoiceOfClient().then((value) {
+      if(value == 0 )
+        {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ChoiceOfClient()));
+        }
+      else if(value == 1 )
+      {
+
+        sharedPref.getFirstArtist().then((value) {
+          if(value)
+          {
+            User? user = FirebaseAuth.instance.currentUser;
+
+            if(user != null)
+            {
+              FirebaseFirestore.instance.collection('users').doc(user.uid).get().then((DocumentSnapshot documentSnapshot) {
+                Map<String, dynamic> data = documentSnapshot.data()! as Map<String, dynamic>;
+                UserModel model= UserModel.fromMap(data, documentSnapshot.reference.id);
+
+                if (user.emailVerified && documentSnapshot.exists && data['type'] == "artist") {
+                  Navigator.pushReplacement(context, MaterialPageRoute(
+                      builder: (BuildContext context) => BottomBarArtist(model)));
+                }
+                else{
+                  Navigator.pushReplacement(context, MaterialPageRoute(
+                      builder: (BuildContext context) => SignIn()));
+                }
+
+              });
+            }
+
+            else if (user == null ) {
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (BuildContext context) => SignIn()));
+            }
+          }
+          else
+          {
+            Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => OnBoardingArtist()));
+          }
+        });
+      }
+      else
+        {
+          sharedPref.getFirstStudio().then((value) {
+            if(value)
+            {
+              User? user = FirebaseAuth.instance.currentUser;
+
+              if(user != null)
+              {
+                FirebaseFirestore.instance.collection('users').doc(user.uid).get().then((DocumentSnapshot documentSnapshot) {
+                  Map<String, dynamic> data = documentSnapshot.data()! as Map<String, dynamic>;
+                  UserModel model= UserModel.fromMap(data, documentSnapshot.reference.id);
+
+                  if (user.emailVerified && documentSnapshot.exists && data['type'] == "studio") {
+                    Navigator.pushReplacement(context, MaterialPageRoute(
+                        builder: (BuildContext context) => BottomBarStudio(model)));
+                  }
+                  else{
+                    Navigator.pushReplacement(context, MaterialPageRoute(
+                        builder: (BuildContext context) => SignIn()));
+                  }
+
+                });
+              }
+
+              else if (user == null ) {
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (BuildContext context) => SignIn()));
+              }
+            }
+            else
+            {
+              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => OnBoardingStudio()));
+            }
+          });
+        }
+    });
   }
+
 
   @override
   Widget build(BuildContext context) {

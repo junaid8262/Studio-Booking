@@ -61,45 +61,36 @@ class _NearbyStudioState extends State<NearbyStudio> {
       backgroundColor: primaryColor,
       body: Column(
         children: [
-          SizedBox(height: size.height*0.07,),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12,6,12,0),
-            child: Align(
-              alignment: Alignment.center,
-              child: Container(
-                height: size.height*0.05,
-                width: size.width*0.7,
-                color: backgroundColor,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text("Paris"),
-                      Icon(Icons.search,color: Colors.grey,)
-                    ],
+
+
+          Container(
+            height:  size.height * 0.15,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12,6,12,16),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  height: size.height*0.05,
+                  width: size.width*0.7,
+                  color: backgroundColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text("Paris"),
+                        Icon(Icons.search,color: Colors.grey,)
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
+
           ),
-          SizedBox(height: size.height*0.0222,),
-
-/*        ClipRRect(
-
-            borderRadius: const BorderRadius.only(topLeft:Radius.circular(18), topRight:Radius.circular(18) , bottomRight: Radius.zero , bottomLeft: Radius.zero),
-            child:  GoogleMap(
-                onMapCreated: _onMapCreated,
-                initialCameraPosition: const CameraPosition(
-                  target: _center,
-                  zoom: 11.0,
-                ),
-              ),
-
-          ),*/
 
           Container(
-            height: MediaQuery.of(context).size.height * 0.77123,
+            height: size.height * 0.775,
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.only(topLeft:Radius.circular(18), topRight:Radius.circular(18) , bottomRight: Radius.zero , bottomLeft: Radius.zero),
               color: Colors.white,

@@ -52,7 +52,7 @@ class _ReservationState extends State<Reservation> {
           children: [
             SizedBox(height: size.height*0.15,),
             Container(
-              height: MediaQuery.of(context).size.height * 0.77182,
+              height: MediaQuery.of(context).size.height * 0.775,
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(topLeft:Radius.circular(18), topRight:Radius.circular(18) , bottomRight: Radius.zero , bottomLeft: Radius.zero),
                 color: Colors.white,

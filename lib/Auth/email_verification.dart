@@ -4,7 +4,7 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:studio_booking_app/Auth/profile_setup.dart';
-import 'package:studio_booking_app/Navigator/bottom_navigator.dart';
+import 'package:studio_booking_app/Navigator/bottom_navigator_artist.dart';
 import 'package:studio_booking_app/Values/constants.dart';
 
 class EmailVerification extends StatefulWidget {
@@ -66,7 +66,7 @@ class _EmailVerificationState extends State<EmailVerification> {
                   fontSize: 24,
                 ),),),
 
-                SizedBox(height : size.height*0.06),
+                SizedBox(height : size.height*0.05),
 
                 Padding(
                   padding: const EdgeInsets.all(14.0),
@@ -75,13 +75,13 @@ class _EmailVerificationState extends State<EmailVerification> {
                       width: size.width*1,
                       child: RichText(
                         text:  TextSpan(
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 18,
                             color: Colors.black87,
                           ),
                           children: <TextSpan>[
-                            TextSpan(text:"A Verification Email has been Sent to your email address "),
-                            TextSpan(text: userEmail,style: TextStyle(
+                            const TextSpan(text:"A Verification Email has been Sent to your email address "),
+                            TextSpan(text: userEmail,style: const TextStyle(
                               fontWeight: FontWeight.w700
                             )),
 
@@ -91,8 +91,13 @@ class _EmailVerificationState extends State<EmailVerification> {
                     ),
                   ),
                 ),
+                
+                Container(
+                    height: size.height*0.4,
+                    width: size.width*0.8,
+                    child: Image.asset("assets/images/verifyEmail.png")),
 
-                SizedBox(height: size.height*0.06,),
+                SizedBox(height: size.height*0.05,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
