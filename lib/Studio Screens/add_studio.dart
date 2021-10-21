@@ -1,11 +1,17 @@
 import 'dart:io';
+import 'dart:math';
 
+import 'package:badges/badges.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:progress_dialog/progress_dialog.dart';
+import 'package:studio_booking_app/Artist%20Screens/expert_detail.dart';
+import 'package:studio_booking_app/Model/expert_model.dart';
+import 'package:studio_booking_app/Studio%20Screens/add_expert.dart';
 import 'package:studio_booking_app/Values/constants.dart';
 import 'package:firebase_storage/firebase_storage.dart'  as firebase_storage;
 import 'package:toast/toast.dart';
@@ -30,6 +36,8 @@ class _AddStudioState extends State<AddStudio> {
 
   int studioType = 0  ;
   bool jazz = false , country = false , rock = false , pop = false , classic = false;
+  List<Expert> expert = [];
+  int? lenghtExpert = 0 ;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +82,7 @@ class _AddStudioState extends State<AddStudio> {
             child:  Form(
                     key: _formKey,
                     child:  Scrollbar(
-                      isAlwaysShown: true,
+                      isAlwaysShown: false,
                       thickness: 7,
                       radius: Radius.circular(15), // give the thumb rounded corners
                       showTrackOnHover: true,
@@ -742,6 +750,189 @@ class _AddStudioState extends State<AddStudio> {
                           ),
                         ),
 
+
+                        // add engineer
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 5, 5, 10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        "Studio Expert",
+                                        style:  TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black54,
+                                            fontWeight: FontWeight.w500
+                                        ),
+
+                                      ),
+
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(8,0,8,0),
+                                        child: Text("(Long Press : To View Detail)",style: TextStyle(
+                                            color : Colors.grey.shade600,
+                                          fontSize: 12
+                                        ),),
+                                      )
+                                    ],
+                                  ),
+
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Transform.rotate(
+                                        angle: 180 * pi / 360,
+                                      child: Icon(CupertinoIcons.chevron_up_chevron_down,color: Colors.grey,)),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: size.height * 0.01,
+                              ),
+                              Container(
+                                height : size.height *0.15,
+                                //width: double.infinity,
+                                color : Colors.white,
+                                child: StreamBuilder<QuerySnapshot>(
+                                  stream: FirebaseFirestore.instance.collection('expert').where("expert_owner_id" , isEqualTo: getUid()).snapshots(),
+                                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
+
+                                    if (snapshot.hasError) {
+                                      return  Column(
+                                        children: [
+                                          SizedBox(height : 20),
+                                          const Center(child: Text('Something Went Wrong',style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.black54,
+                                              fontWeight: FontWeight.w600
+                                          ),)),
+                                        ],
+                                      );
+                                    }
+
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return Column(
+                                        children: [
+                                          SizedBox(height : 20),
+                                          Center(child: CircularProgressIndicator(
+                                            valueColor: new AlwaysStoppedAnimation<Color>(primaryColor),
+                                          ),),
+                                        ],
+                                      );
+                                    }
+
+                                    if(snapshot.data!.size == 0)
+                                    {
+                                      return Column(
+                                        children: [
+                                          SizedBox(height : 10),
+                                          InkWell(
+                                            onTap : (){
+                                              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => const AddExpert()));
+                                            },
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: const[
+                                                 Center(child: Text('Add Expert',style: TextStyle(
+                                                    fontSize: 18,
+                                                    color: Colors.black54,
+                                                    fontWeight: FontWeight.w600
+                                                ),)),
+
+                                                Padding(
+                                                  padding: const EdgeInsets.all(8.0),
+                                                  child: Icon(Icons.add_circle_outline_outlined,color : Colors.grey),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      );
+
+
+                                    }
+
+                                    return ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      physics: BouncingScrollPhysics(),
+                                      padding: EdgeInsets.fromLTRB(0,2,9,0),
+                                      itemCount: snapshot.data?.docs.length,
+                                      shrinkWrap: true,
+                                      itemBuilder: (context, index) {
+                                        Map<String, dynamic> data = snapshot.data!.docs[index].data()! as Map<String, dynamic>;
+                                        ExpertModel model= ExpertModel.fromMap(data, snapshot.data!.docs[index].reference.id);
+                                        Expert expert1 = Expert(false, snapshot.data!.docs[index].reference.id);
+                                        expert.add(expert1);
+                                        lenghtExpert = snapshot.data!.docs.length;
+                                        return InkWell(
+                                          onTap : (){
+                                            setState(() {
+                                              expert[index].isCheck = !expert[index].isCheck ;
+                                              expert[index].id = snapshot.data!.docs[index].reference.id ;
+                                            });
+                                          },
+                                          onLongPress: (){
+                                            showModalBottomSheet(
+                                                context: context,
+                                                builder: (BuildContext bc) {
+                                                  return SafeArea(
+                                                    child: Wrap(
+                                                      children: <Widget>[
+                                                        ListTile(
+                                                            leading: const Icon(Icons.list_alt),
+                                                            title: const Text('View Expert Detail'),
+                                                            onTap: () {
+                                                              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) =>  ExpertDetail(model)));
+                                                            }),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }
+                                            );
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.fromLTRB(0,8,9,0),
+                                            child: Column(
+                                                children : [
+                                                  expert[index].isCheck ?
+                                                   Badge(
+                                                    padding: const EdgeInsets.fromLTRB(0,0,0,0),
+                                                    badgeColor: primaryColor,
+                                                    badgeContent:  Icon(Icons.done,color  :Colors.white,size: 18,),
+                                                    child:CircleAvatar(
+                                                      radius : 35 ,
+                                                      backgroundImage: NetworkImage(data['profile']),
+                                                    ),
+                                                  ) : CircleAvatar(
+                                                    radius : 35 ,
+                                                    backgroundImage: NetworkImage(data['profile']),
+                                                  ),
+
+
+                                                  Padding(
+                                                    padding: const EdgeInsets.all(4.0),
+                                                    child: Text(data['fullName']),
+                                                  ),
+                                                ]
+                                            ),
+                                          ),
+                                        );
+                                      },
+
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+
+
                       ],
                     ),
                     )
@@ -752,7 +943,7 @@ class _AddStudioState extends State<AddStudio> {
       ),
 
       bottomNavigationBar: title.text.trim() != "" && bio.text.trim() != "" && equipments.text.trim() != ""&& features.text.trim() != "" && price.text.trim() != ""
-          && studioType != 0  && (jazz == true  || country == true || rock == true || pop == true || classic == true ) && photoUrl != "" ? InkWell(
+          && studioType != 0  && (jazz == true  || country == true || rock == true || pop == true || classic == true ) && photoUrl != "" && expertList().isNotEmpty ? InkWell(
         onTap: (){
           addStudio().then((value) {
             Toast.show("Studio Added", context, duration: Toast.LENGTH_LONG, gravity:  Toast.TOP , textColor: primaryColor , backgroundColor: Colors.white);
@@ -781,25 +972,25 @@ class _AddStudioState extends State<AddStudio> {
         ),
       ),
           ) :
-      Container(
-        height: size.height*0.095,
-        width: double.infinity,
-        color: Colors.white,
-        child: Center(
-          child: Container(
-            height: size.height*0.07,
-            width: size.width*0.9,
-            decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(4)
+       Container(
+          height: size.height*0.095,
+          width: double.infinity,
+          color: Colors.white,
+          child: Center(
+            child: Container(
+              height: size.height*0.07,
+              width: size.width*0.9,
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(4)
+              ),
+              child: const Center(child: Text("Next",style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey
+              ) ,),),
             ),
-            child: const Center(child: Text("Next",style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey
-            ) ,),),
           ),
-        ),
       ) ,
 
     );
@@ -901,14 +1092,27 @@ class _AddStudioState extends State<AddStudio> {
       'rating' : 0,
       'studio_type' : studioType == 1 ? "Home Studio" : "Recording Studio" ,
       'music_type' : FieldValue.arrayUnion(musicTypes()),
+      'expert_id' : FieldValue.arrayUnion(expertList()),
     })
         .then((value) => print("User Added"))
         .catchError((error) => print("Failed to add user: $error"));
   }
 
 
-  List<String> musicTypes()
-  {
+  List<String> expertList()  {
+    List<String> expertT = [];
+
+    for (int i = 0 ; i <= lenghtExpert!;i++)
+      {
+        if(expert[i].isCheck)
+          {
+            expertT.add(expert[i].id);
+          }
+      }
+    return expertT;
+  }
+
+  List<String> musicTypes()  {
     List<String> musicT = [];
     if (jazz == true)
       {
@@ -935,5 +1139,14 @@ class _AddStudioState extends State<AddStudio> {
 
   }
 
+
+}
+
+
+class Expert{
+  bool isCheck = false ;
+  String id;
+
+  Expert(this.isCheck, this.id);
 
 }

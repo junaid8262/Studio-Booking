@@ -1,7 +1,12 @@
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:studio_booking_app/Artist%20Screens/expert_detail.dart';
 import 'package:studio_booking_app/Artist%20Screens/reserve_studio.dart';
+import 'package:studio_booking_app/Model/expert_model.dart';
 import 'package:studio_booking_app/Model/studio_model.dart';
 import 'package:studio_booking_app/Shared%20Preference/shared_prefrence.dart';
 import 'package:studio_booking_app/Values/constants.dart';
@@ -130,7 +135,7 @@ class _StudioDetailState extends State<StudioDetail> {
                           padding: const EdgeInsets.fromLTRB(0,0,8,0),
                           child: InkWell(
                             onTap: (){
-                              Navigator.push(context,MaterialPageRoute(builder: (context) =>  ReserveStudio()),);
+                              Navigator.push(context,MaterialPageRoute(builder: (context) =>  ReserveStudio(widget.model)),);
                             },
                             child: Container(
                               width: size.width*0.18,
@@ -327,6 +332,138 @@ class _StudioDetailState extends State<StudioDetail> {
                                         ),),
                                       ),
 
+
+                                      // Music engineer
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(14,0,14,5),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: <Widget>[
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    const Text("Music Expert",style: TextStyle(
+                                                      fontWeight: FontWeight.w500,
+                                                      fontSize: 20,
+                                                    ),),
+
+                                                    Padding(
+                                                      padding: const EdgeInsets.fromLTRB(8,0,8,0),
+                                                      child: Text("(Tap : To View Detail)",style: TextStyle(
+                                                          color : Colors.grey.shade600,
+                                                          fontSize: 12
+                                                      ),),
+                                                    )
+                                                  ],
+                                                ),
+
+                                                Padding(
+                                                  padding: const EdgeInsets.all(8.0),
+                                                  child: Transform.rotate(
+                                                      angle: 180 * pi / 360,
+                                                      child: Icon(CupertinoIcons.chevron_up_chevron_down,color: Colors.grey,)),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: size.height * 0.00,
+                                            ),
+                                            Container(
+                                              height : size.height *0.15,
+                                              //width: double.infinity,
+                                              color : Colors.white,
+                                              child: ListView.builder(
+                                                scrollDirection: Axis.horizontal,
+                                                physics: BouncingScrollPhysics(),
+                                                padding: EdgeInsets.fromLTRB(0,2,9,0),
+                                                itemCount: widget.model.expert_id.length,
+                                                shrinkWrap: true,
+                                                itemBuilder: (context, index) {
+                                                  //ExpertModel model= ExpertModel.fromMap(data, snapshot.data!.docs[index].reference.id);
+
+                                                  return FutureBuilder<DocumentSnapshot>(
+                                                  future: FirebaseFirestore.instance.collection('expert').doc(widget.model.expert_id[index]).get(),
+                                                  builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot){
+                                                    if (snapshot.hasError) {
+                                                      return Center(child: Text('Something Went Wrong',style: TextStyle(
+                                                          fontSize: 18,
+                                                          color: Colors.black54,
+                                                          fontWeight: FontWeight.w600
+                                                      ),));
+                                                    }
+
+                                                    if (snapshot.hasData && !snapshot.data!.exists) {
+                                                      return Center(child: Text('No Expert',style: TextStyle(
+                                                          fontSize: 18,
+                                                          color: Colors.black54,
+                                                          fontWeight: FontWeight.w600
+                                                      ),));
+                                                    }
+
+
+                                                    if (snapshot.connectionState == ConnectionState.waiting)
+                                                      {
+                                                        return Center(child: CircularProgressIndicator(
+                                                          valueColor: new AlwaysStoppedAnimation<Color>(primaryColor),
+                                                        ),);
+                                                      }
+
+                                                    if (snapshot.connectionState == ConnectionState.done) {
+                                                      Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+                                                      ExpertModel model= ExpertModel.fromMap(data, snapshot.data!.reference.id);
+
+                                                      return InkWell(
+                                                        onTap : (){
+                                                          showModalBottomSheet(
+                                                              context: context,
+                                                              builder: (BuildContext bc) {
+                                                                return SafeArea(
+                                                                  child: Wrap(
+                                                                    children: <Widget>[
+                                                                      ListTile(
+                                                                          leading: const Icon(Icons.list_alt),
+                                                                          title: const Text('View Expert Detail'),
+                                                                          onTap: () {
+                                                                            Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) =>  ExpertDetail(model)));
+                                                                          }),
+                                                                    ],
+                                                                  ),
+                                                                );
+                                                              }
+                                                          );
+                                                        },
+
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.fromLTRB(0,8,9,0),
+                                                          child: Column(
+                                                              children : [
+                                                                 CircleAvatar(
+                                                                  radius : 35 ,
+                                                                  backgroundImage: NetworkImage(data['profile']),
+                                                                ),
+
+
+                                                                Padding(
+                                                                  padding: const EdgeInsets.all(4.0),
+                                                                  child: Text(data['fullName']),
+                                                                ),
+                                                              ]
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+
+                                                    return Container();
+                                                  }
+                                                  );},
+
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
 
                                       SizedBox(
                                         height: size.height*0.01,

@@ -1,16 +1,30 @@
+import 'dart:math';
+
+import 'package:badges/badges.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:studio_booking_app/Artist%20Screens/expert_detail.dart';
 import 'package:studio_booking_app/Artist%20Screens/reservation_summary.dart';
+import 'package:studio_booking_app/Model/expert_model.dart';
+import 'package:studio_booking_app/Model/studio_model.dart';
 import 'package:studio_booking_app/Values/constants.dart';
 
 class ReserveStudio extends StatefulWidget {
-  const ReserveStudio({Key? key}) : super(key: key);
+  StudioModel model;
+
+  ReserveStudio(this.model);
 
   @override
   _ReserveStudioState createState() => _ReserveStudioState();
 }
 
 class _ReserveStudioState extends State<ReserveStudio> {
+
+  int selected = -1 ;
+  List<Time> time = [];
+
+  
   @override
   Widget build(BuildContext context) {
 
@@ -39,59 +53,153 @@ class _ReserveStudioState extends State<ReserveStudio> {
 
                 //Choose Engineer
                 Container(
-                  height: size.height*0.20,
+                  height: size.height*0.23,
                   width: double.infinity,
                   color: Colors.white,
-                  child :Column(
-                    children: [
-                      Padding(
+                  child : Padding(
                         padding: const EdgeInsets.fromLTRB(14,8,8,8.0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text("Choose Your Engineer",style: TextStyle(
-                              fontSize: 19,
-                              color: Colors.black87,
-                              fontWeight: FontWeight.w500
-                          ),),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text("Choose Your Expert",style: TextStyle(
+                                        fontSize: 19,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w500
+                                    ),),
+
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(8,0,8,0),
+                                      child: Text("(Long Tap : To View Detail)",style: TextStyle(
+                                          color : Colors.grey.shade600,
+                                          fontSize: 9
+                                      ),),
+                                    )
+                                  ],
+                                ),
+
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Transform.rotate(
+                                      angle: 180 * pi / 360,
+                                      child: Icon(CupertinoIcons.chevron_up_chevron_down,color: Colors.grey,)),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: size.height * 0.00,
+                            ),
+                            Container(
+                              height : size.height *0.15,
+                              //width: double.infinity,
+                              color : Colors.white,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                physics: BouncingScrollPhysics(),
+                                padding: EdgeInsets.fromLTRB(0,2,9,0),
+                                itemCount: widget.model.expert_id.length,
+                                shrinkWrap: true,
+                                itemBuilder: (context, index) {
+                                  //ExpertModel model= ExpertModel.fromMap(data, snapshot.data!.docs[index].reference.id);
+
+                                  return FutureBuilder<DocumentSnapshot>(
+                                      future: FirebaseFirestore.instance.collection('expert').doc(widget.model.expert_id[index]).get(),
+                                      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot){
+                                        if (snapshot.hasError) {
+                                          return Center(child: Text('Something Went Wrong',style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.black54,
+                                              fontWeight: FontWeight.w600
+                                          ),));
+                                        }
+
+                                        if (snapshot.hasData && !snapshot.data!.exists) {
+                                          return Center(child: Text('No Expert',style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.black54,
+                                              fontWeight: FontWeight.w600
+                                          ),));
+                                        }
+
+
+                                        if (snapshot.connectionState == ConnectionState.waiting)
+                                        {
+                                          return Container();
+                                        }
+
+                                        if (snapshot.connectionState == ConnectionState.done) {
+                                          Map<String, dynamic> data = snapshot.data!.data() as Map<String, dynamic>;
+                                          ExpertModel model= ExpertModel.fromMap(data, snapshot.data!.reference.id);
+
+                                          return InkWell(
+                                            onTap: (){
+                                              setState(() {
+                                                selected = index ;
+                                              });
+                                            },
+                                            onLongPress : (){
+                                              showModalBottomSheet(
+                                                  context: context,
+                                                  builder: (BuildContext bc) {
+                                                    return SafeArea(
+                                                      child: Wrap(
+                                                        children: <Widget>[
+                                                          ListTile(
+                                                              leading: const Icon(Icons.list_alt),
+                                                              title: const Text('View Expert Detail'),
+                                                              onTap: () {
+                                                                Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) =>  ExpertDetail(model)));
+                                                              }),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  }
+                                              );
+                                            },
+
+                                            child: Padding(
+                                              padding: const EdgeInsets.fromLTRB(0,8,9,0),
+                                              child: Column(
+                                                  children : [
+
+                                                    selected == index ? Badge(
+                                                      padding: const EdgeInsets.fromLTRB(0,0,0,0),
+                                                      badgeColor: primaryColor,
+                                                      badgeContent:  Icon(Icons.done,color  :Colors.white,size: 18,),
+                                                      child:CircleAvatar(
+                                                        radius : 35 ,
+                                                        backgroundImage: NetworkImage(data['profile']),
+                                                      ),
+                                                    ) : CircleAvatar(
+                                                      radius : 35 ,
+                                                      backgroundImage: NetworkImage(data['profile']),
+                                                    ),
+
+
+                                                    Padding(
+                                                      padding: const EdgeInsets.all(4.0),
+                                                      child: Text(data['fullName']),
+                                                    ),
+                                                  ]
+                                              ),
+                                            ),
+                                          );
+                                        }
+
+                                        return Container();
+                                      }
+                                  );},
+
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Expanded(
-                          flex: 23,
-                          child: Container(
-                            child: ListView.builder(
-                                scrollDirection: Axis.horizontal ,
-                                itemCount: 8,
-                                physics: BouncingScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  return Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          height: size.height*0.08,
-                                          width: size.width*0.2,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.white,
-                                            border: Border.all(color: Colors.grey),
-                                            image: const DecorationImage(
-                                                image: AssetImage("assets/images/empty.png"),
-                                                fit: BoxFit.cover
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: size.height*0.009,),
-                                        const Text("Mixing"),
-                                      ],
-                                    ),
-                                  );
-                                }
-                            ),
-                          )),
 
-                    ],
-                  )
                 ),
 
                 // Select Date
@@ -209,6 +317,14 @@ class _ReserveStudioState extends State<ReserveStudio> {
                                     ),
                                     Text("Available"),
 
+
+                                    Padding(
+                                      padding: const EdgeInsets.only(left :8.0),
+                                      child: Transform.rotate(
+                                            angle: 180 * pi / 360,
+                                            child: Icon(CupertinoIcons.chevron_up_chevron_down,color: Colors.grey,)),
+                                    ),
+
                                   ],
                                 ),
                               )
@@ -219,169 +335,364 @@ class _ReserveStudioState extends State<ReserveStudio> {
                         ),
 
 
-                        Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
+                        Expanded(
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            shrinkWrap: true,
+                            children: [
+                              Container(
+                                width : size.width*1,
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
 
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: primaryColor,
-                                      borderRadius: BorderRadius.circular(14),
+                                          GestureDetector(
+                                            onTap: (){
+                                            },
+                                            onTapCancel: (){
+                                            },
+                                            child: Container(
+                                              height: size.height*0.04,
+                                              width: size.width*0.21,
+                                              decoration: BoxDecoration(
+                                                color: primaryColor,
+                                                borderRadius: BorderRadius.circular(14),
+                                              ),
+                                              child: Center(child: Text("6:00 Am",style: TextStyle(
+                                                color: Colors.white,
+
+                                              ),),),
+                                            ),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("7:00 Am",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xffADBAFC),
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("8:00 Am",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xffADBAFC),
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("9:00 Am",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+
+                                        ],
+                                      ),
                                     ),
-                                    child: Center(child: Text("12:00 Am",style: TextStyle(
-                                      color: Colors.white,
+                                    Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("10:00 Am",style: TextStyle(
+                                              color: Colors.white,
 
-                                    ),),),
-                                  ),
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: primaryColor,
-                                      borderRadius: BorderRadius.circular(14),
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("11:00 Am",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("12:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("1:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+
+                                        ],
+                                      ),
                                     ),
-                                    child: Center(child: Text("1:00 Am",style: TextStyle(
-                                      color: Colors.white,
+                                    Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("2:00 Pm",style: TextStyle(
+                                              color: Colors.white,
 
-                                    ),),),
-                                  ),
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: Color(0xffADBAFC),
-                                      borderRadius: BorderRadius.circular(14),
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("3:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("4:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("5:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+
+                                          ),
+
+                                        ],
+                                      ),
                                     ),
-                                    child: Center(child: Text("2:00 Pm",style: TextStyle(
-                                      color: Colors.white,
 
-                                    ),),),
-                                  ),
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: Color(0xffADBAFC),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Center(child: Text("3:00 Pm",style: TextStyle(
-                                      color: Colors.white,
 
-                                    ),),),
-                                  ),
-
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: primaryColor,
-                                      borderRadius: BorderRadius.circular(14),
+                              Container(
+                                width : size.width*1,
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("6:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("7:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xffADBAFC),
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("8:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: Color(0xffADBAFC),
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("9:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+
+                                        ],
+                                      ),
                                     ),
-                                    child: Center(child: Text("4:00 Pm",style: TextStyle(
-                                      color: Colors.white,
+                                    Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("10:00 Pm",style: TextStyle(
+                                              color: Colors.white,
 
-                                    ),),),
-                                  ),
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: primaryColor,
-                                      borderRadius: BorderRadius.circular(14),
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("11:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("12:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+
+                                          ),
+
+                                        ],
+                                      ),
                                     ),
-                                    child: Center(child: Text("5:00 Pm",style: TextStyle(
-                                      color: Colors.white,
+/*
+                                    Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("2:00 Am",style: TextStyle(
+                                              color: Colors.white,
 
-                                    ),),),
-                                  ),
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: primaryColor,
-                                      borderRadius: BorderRadius.circular(14),
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+                                            decoration: BoxDecoration(
+                                              color: primaryColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Center(child: Text("9:00 Pm",style: TextStyle(
+                                              color: Colors.white,
+
+                                            ),),),
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+
+                                          ),
+                                          Container(
+                                            height: size.height*0.04,
+                                            width: size.width*0.21,
+
+                                          ),
+
+                                        ],
+                                      ),
                                     ),
-                                    child: Center(child: Text("6:00 Pm",style: TextStyle(
-                                      color: Colors.white,
+*/
 
-                                    ),),),
-                                  ),
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: primaryColor,
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Center(child: Text("7:00 Pm",style: TextStyle(
-                                      color: Colors.white,
 
-                                    ),),),
-                                  ),
-
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: primaryColor,
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Center(child: Text("8:00 Pm",style: TextStyle(
-                                      color: Colors.white,
 
-                                    ),),),
-                                  ),
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-                                    decoration: BoxDecoration(
-                                      color: primaryColor,
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Center(child: Text("9:00 Pm",style: TextStyle(
-                                      color: Colors.white,
-
-                                    ),),),
-                                  ),
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-
-                                  ),
-                                  Container(
-                                    height: size.height*0.04,
-                                    width: size.width*0.21,
-
-                                    ),
-
-                                ],
-                              ),
-                            ),
-
-
-                          ],
+                            ],
+                          ),
                         )
 
 
@@ -458,5 +769,14 @@ class _ReserveStudioState extends State<ReserveStudio> {
       });
     }
   }
+
+}
+
+
+class Time{
+  bool isBooked = false ;
+  String time;
+
+  Time(this.isBooked, this.time);
 
 }
